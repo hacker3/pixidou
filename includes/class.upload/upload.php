@@ -1,745 +1,3068 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<meta http-equiv=content-type content="text/html; charset=UTF-8">
-<head>
-    <title>class.php.upload test forms</title>
-    
-    <style>
-        body {
-        }
-        fieldset {
-            width: 50%;
-            background: url(bg.gif);
-            margin: 15px 0px 25px 0px;
-            padding: 15px;
-        }
-        legend {
-            font-weight: bold;
-        }
-        fieldset img {
-            float: right;
-        }
-        fieldset p {
-            font-size: 70%;
-            font-style: italic;
-        }
-        .button {
-            text-align: right;
-        }
-        .button input {
-            font-weight: bold;
-        }
-    </style>
-</head>
-
-<body>
-
-    <h1>class.upload.php test forms</h1>
-
-<?php
-
-error_reporting(E_ALL); 
-
-// we first include the upload class, as we will need it here to deal with the uploaded file
-include('class.upload.php');
-
-// we have three forms on the test page, so we redirect accordingly
-if (!array_key_exists('action', $_POST) || $_POST['action'] == 'simple') {
-
-    // ---------- SIMPLE UPLOAD ----------
-    
-    // we create an instance of the class, giving as argument the PHP object 
-    // corresponding to the file field from the form
-    // All the uploads are accessible from the PHP object $_FILES
-    $handle = new Upload($_FILES['my_field']);
-
-    // then we check if the file has been uploaded properly
-    // in its *temporary* location in the server (often, it is /tmp)
-    if ($handle->uploaded) {
-
-        // yes, the file is on the server
-        // now, we start the upload 'process'. That is, to copy the uploaded file
-        // from its temporary location to the wanted location
-        // It could be something like $handle->Process('/home/www/my_uploads/');
-        $handle->Process('./test/');
-        
-        // we check if everything went OK
-        if ($handle->processed) {
-            // everything was fine !
-            echo '<fieldset>';
-            echo '  <legend>file uploaded with success</legend>';
-            echo '  <p>' . round(filesize($handle->file_dst_pathname)/256)/4 . 'KB</p>';
-            echo '  link to the file just uploaded: <a href="test/' . $handle->file_dst_name . '">' . $handle->file_dst_name . '</a>';
-            echo '</fieldset>';
-        } else {
-            // one error occured
-            echo '<fieldset>';
-            echo '  <legend>file not uploaded to the wanted location</legend>';
-            echo '  Error: ' . $handle->error . '';
-            echo '</fieldset>';
-        }
-
-        // we copy the file a second time
-        $handle->Process('./test/');
-        
-        // we check if everything went OK
-        if ($handle->processed) {
-            // everything was fine !
-            echo '<fieldset>';
-            echo '  <legend>file uploaded with success</legend>';
-            echo '  <p>' . round(filesize($handle->file_dst_pathname)/256)/4 . 'KB</p>';
-            echo '  link to the file just uploaded: <a href="test/' . $handle->file_dst_name . '">' . $handle->file_dst_name . '</a>';
-            echo '</fieldset>';
-        } else {
-            // one error occured
-            echo '<fieldset>';
-            echo '  <legend>file not uploaded to the wanted location</legend>';
-            echo '  Error: ' . $handle->error . '';
-            echo '</fieldset>';
-        }
-        
-        // we delete the temporary files
-        $handle-> Clean();
-
-    } else {
-        // if we're here, the upload file failed for some reasons
-        // i.e. the server didn't receive the file
-        echo '<fieldset>';
-        echo '  <legend>file not uploaded on the server</legend>';
-        echo '  Error: ' . $handle->error . '';
-        echo '</fieldset>';
-    }
-
-} else if ($_POST['action'] == 'image') {
-
-    // ---------- IMAGE UPLOAD ----------
-    
-    // we create an instance of the class, giving as argument the PHP object 
-    // corresponding to the file field from the form
-    // All the uploads are accessible from the PHP object $_FILES
-    $handle = new Upload($_FILES['my_field']);
-
-    // then we check if the file has been uploaded properly
-    // in its *temporary* location in the server (often, it is /tmp)
-    if ($handle->uploaded) {
-       
-        // yes, the file is on the server
-        // below are some example settings which can be used if the uploaded file is an image.
-        $handle->image_resize            = true;
-        $handle->image_ratio_y           = true;
-        $handle->image_x                 = 500;
-
-        // now, we start the upload 'process'. That is, to copy the uploaded file
-        // from its temporary location to the wanted location
-        // It could be something like $handle->Process('/home/www/my_uploads/');
-        $handle->Process('./test/');
-        
-        // we check if everything went OK
-        if ($handle->processed) {
-            // everything was fine !
-            echo '<fieldset>';
-            echo '  <legend>file uploaded with success</legend>';
-            echo '  <img src="test/' . $handle->file_dst_name . '" />';
-            $info = getimagesize($handle->file_dst_pathname);
-            echo '  <p>' . $info['mime'] . ' &nbsp;-&nbsp; ' . $info[0] . ' x ' . $info[1] .' &nbsp;-&nbsp; ' . round(filesize($handle->file_dst_pathname)/256)/4 . 'KB</p>';
-            echo '  link to the file just uploaded: <a href="test/' . $handle->file_dst_name . '">' . $handle->file_dst_name . '</a><br/>';
-            echo '</fieldset>';
-        } else {
-            // one error occured
-            echo '<fieldset>';
-            echo '  <legend>file not uploaded to the wanted location</legend>';
-            echo '  Error: ' . $handle->error . '';
-            echo '</fieldset>';
-        }
-
-        // we now process the image a second time, with some other settings
-        $handle->image_resize            = true;
-        $handle->image_ratio_y           = true;
-        $handle->image_x                 = 500;
-        $handle->image_reflection_height = '25%';
-        $handle->image_contrast          = 50;
-
-        $handle->Process('./test/');
-        
-        // we check if everything went OK
-        if ($handle->processed) {
-            // everything was fine !
-            echo '<fieldset>';
-            echo '  <legend>file uploaded with success</legend>';
-            echo '  <img src="test/' . $handle->file_dst_name . '" />';
-            $info = getimagesize($handle->file_dst_pathname);
-            echo '  <p>' . $info['mime'] . ' &nbsp;-&nbsp; ' . $info[0] . ' x ' . $info[1] .' &nbsp;-&nbsp; ' . round(filesize($handle->file_dst_pathname)/256)/4 . 'KB</p>';
-            echo '  link to the file just uploaded: <a href="test/' . $handle->file_dst_name . '">' . $handle->file_dst_name . '</a><br/>';
-            echo '</fieldset>';
-        } else {
-            // one error occured
-            echo '<fieldset>';
-            echo '  <legend>file not uploaded to the wanted location</legend>';
-            echo '  Error: ' . $handle->error . '';
-            echo '</fieldset>';
-        }
-
-        // we delete the temporary files
-        $handle-> Clean();
-
-    } else {
-        // if we're here, the upload file failed for some reasons
-        // i.e. the server didn't receive the file
-        echo '<fieldset>';
-        echo '  <legend>file not uploaded on the server</legend>';
-        echo '  Error: ' . $handle->error . '';
-        echo '</fieldset>';
-    }
-
-
-
-} else if ($_POST['action'] == 'multiple') {
-
-    // ---------- MULTIPLE UPLOADS ----------
-
-    // as it is multiple uploads, we will parse the $_FILES array to reorganize it into $files
-    $files = array();
-    foreach ($_FILES['my_field'] as $k => $l) {
-        foreach ($l as $i => $v) {
-            if (!array_key_exists($i, $files)) 
-                $files[$i] = array();
-            $files[$i][$k] = $v;
-        }
-    }
-
-    // now we can loop through $files, and feed each element to the class
-    foreach ($files as $file) {
-    
-        // we instanciate the class for each element of $file
-        $handle = new Upload($file);
-        
-        // then we check if the file has been uploaded properly
-        // in its *temporary* location in the server (often, it is /tmp)
-        if ($handle->uploaded) {
-
-            // now, we start the upload 'process'. That is, to copy the uploaded file
-            // from its temporary location to the wanted location
-            // It could be something like $handle->Process('/home/www/my_uploads/');
-            $handle->Process("./test/");
-
-            // we check if everything went OK
-            if ($handle->processed) {
-                // everything was fine !
-                echo '<fieldset>';
-                echo '  <legend>file uploaded with success</legend>';
-                echo '  <p>' . round(filesize($handle->file_dst_pathname)/256)/4 . 'KB</p>';
-                echo '  link to the file just uploaded: <a href="test/' . $handle->file_dst_name . '">' . $handle->file_dst_name . '</a>';
-                echo '</fieldset>';
-            } else {
-                // one error occured
-                echo '<fieldset>';
-                echo '  <legend>file not uploaded to the wanted location</legend>';
-                echo '  Error: ' . $handle->error . '';
-                echo '</fieldset>';
-            }
-            
-        } else {
-            // if we're here, the upload file failed for some reasons
-            // i.e. the server didn't receive the file
-            echo '<fieldset>';
-            echo '  <legend>file not uploaded on the server</legend>';
-            echo '  Error: ' . $handle->error . '';
-            echo '</fieldset>';
-        }
-    }
-    
-} else if ($_POST['action'] == 'local') {
-
-    // ---------- LOCAL PROCESSING ----------
-
-    
-    //error_reporting(E_ALL ^ (E_NOTICE | E_USER_NOTICE | E_WARNING | E_USER_WARNING)); 
-    ini_set("max_execution_time",0);
-
-    // we don't upload, we just send a local filename (image)
-    $handle = new Upload($_POST['my_field']);
-    
-
-    // then we check if the file has been "uploaded" properly
-    // in our case, it means if the file is present on the local file system
-    if ($handle->uploaded) {
-
-        // now, we start a serie of processes, with different parameters
-        // we use a little function TestProcess() to avoid repeting the same code too many times
-        function TestProcess(&$handle, $title = 'test', $details='') {
-
-            $handle->Process('./test/');
-            
-            if ($handle->processed) {
-                echo '<fieldset class="classuploadphp">';
-                echo '  <legend>' . $title . '</legend>';
-                echo '  <div class="classuploadphppic"><img src="test/' . $handle->file_dst_name . '" />';
-                $info = getimagesize($handle->file_dst_pathname);
-                echo '  <p>' . $info['mime'] . ' &nbsp;-&nbsp; ' . $info[0] . ' x ' . $info[1] .' &nbsp;-&nbsp; ' . round(filesize($handle->file_dst_pathname)/256)/4 . 'KB</p></div>';
-                echo '  <pre class="code php">' . htmlentities($details) . '</pre>';
-                echo '</fieldset>';
-            } else {
-                echo '<fieldset class="classuploadphp">';
-                echo '  <legend>' . $title . '</legend>';
-                echo '  Error: ' . $handle->error . '';
-                echo '  <pre class="code php">' . htmlentities($details) . '</pre>';
-                echo '</fieldset>';
-            }
-        }    
-        if (!file_exists("./test")) mkdir('test');
-
-        // -----------
-        TestProcess($handle, 'original file', '');
-    
-        // -----------
-        $handle->image_resize          = true;
-        $handle->image_ratio_y         = true;
-        $handle->image_x               = 50;
-        TestProcess($handle, 'width 50, height auto', "\$foo->image_resize          = true;\n\$foo->image_ratio_y         = true;\n\$foo->image_x               = 50;");
-    
-        // -----------
-        $handle->image_resize          = true;
-        $handle->image_ratio_x         = true;
-        $handle->image_y               = 50;
-        TestProcess($handle, 'height 50, width auto', "\$foo->image_resize          = true;\n\$foo->image_ratio_x         = true;\n\$foo->image_y               = 50;");
-    
-        // -----------
-        $handle->image_resize          = true;
-        $handle->image_y               = 50;
-        $handle->image_x               = 50;
-        TestProcess($handle, 'height 50, width 50', "\$foo->image_resize          = true;\n\$foo->image_y               = 50;\n\$foo->image_x               = 50;");
-
-        // -----------
-        $handle->image_resize          = true;
-        $handle->image_ratio           = true;
-        $handle->image_y               = 50;
-        $handle->image_x               = 50;
-        TestProcess($handle, 'height 50, width 50, keeping ratio', "\$foo->image_resize          = true;\n\$foo->image_ratio           = true;\n\$foo->image_y               = 50;\n\$foo->image_x               = 50;");
-
-        // -----------
-        $handle->image_resize          = true;
-        $handle->image_ratio_crop      = true;
-        $handle->image_y               = 50;
-        $handle->image_x               = 50;
-        TestProcess($handle, '50x50, keeping ratio, cropping excedent', "\$foo->image_resize          = true;\n\$foo->image_ratio_crop      = true;\n\$foo->image_y               = 50;\n\$foo->image_x               = 50;");
-
-        // -----------
-        $handle->image_resize          = true;
-        $handle->image_ratio_crop      = 'L';
-        $handle->image_y               = 50;
-        $handle->image_x               = 50;
-        TestProcess($handle, '50x50, keeping ratio, cropping right excedent', "\$foo->image_resize          = true;\n\$foo->image_ratio_crop      = 'L';\n\$foo->image_y               = 50;\n\$foo->image_x               = 50;");
-
-        // -----------
-        $handle->image_resize          = true;
-        $handle->image_ratio_crop      = 'R';
-        $handle->image_y               = 50;
-        $handle->image_x               = 50;
-        TestProcess($handle, '50x50, keeping ratio, cropping left excedent', "\$foo->image_resize          = true;\n\$foo->image_ratio_crop      = 'R';\n\$foo->image_y               = 50;\n\$foo->image_x               = 50;");
-
-        // -----------
-        $handle->image_resize          = true;
-        $handle->image_ratio_fill      = true;
-        $handle->image_y               = 50;
-        $handle->image_x               = 150;
-        TestProcess($handle, '150x50, keeping ratio, filling in', "\$foo->image_resize          = true;\n\$foo->image_ratio_fill      = true;\n\$foo->image_y               = 50;\n\$foo->image_x               = 150;");
-
-        // -----------
-        $handle->image_resize          = true;
-        $handle->image_ratio_fill      = 'L';
-        $handle->image_y               = 50;
-        $handle->image_x               = 150;
-        TestProcess($handle, '150x50, keeping ratio, filling left side', "\$foo->image_resize          = true;\n\$foo->image_ratio_fill      = 'L';\n\$foo->image_y               = 50;\n\$foo->image_x               = 150;");
-
-        // -----------
-        $handle->image_resize          = true;
-        $handle->image_ratio_fill      = 'R';
-        $handle->image_y               = 150;
-        $handle->image_x               = 100;
-        $handle->image_background_color = '#FF00FF';
-        TestProcess($handle, '100x150, keeping ratio, filling top and bottom', "\$foo->image_resize          = true;\n\$foo->image_ratio_fill      = 'R';\n\$foo->image_y               = 150;\n\$foo->image_x               = 100;\n\$foo->image_background_color = '#FF00FF';");
-
-        // -----------
-        $handle->image_resize          = true;
-        $handle->image_ratio_crop      = true;
-        $handle->image_y               = 50;
-        $handle->image_x               = 50;
-        $handle->image_crop            = '0 10';
-        TestProcess($handle, 'height 50, width 50, cropped, using ratio_crop', "\$foo->image_resize          = true;\n\$foo->image_ratio_crop      = true;\n\$foo->image_crop            = '0 10';\n\$foo->image_y               = 50;\n\$foo->image_x               = 50;");
-
-        // -----------
-        $handle->image_resize          = true;
-        $handle->image_ratio_pixels    = 25000;
-        TestProcess($handle, 'calculates x and y, targeting 25000 pixels', "\$foo->image_resize          = true;\n\$foo->image_ratio_pixels    = 25000;");
-
-        // -----------
-        $handle->image_resize          = true;
-        $handle->image_ratio_pixels    = 10000;
-        TestProcess($handle, 'calculates x and y, targeting 10000 pixels', "\$foo->image_resize          = true;\n\$foo->image_ratio_pixels    = 10000;");
-
-        // -----------
-        $handle->image_crop            = '20%';
-        TestProcess($handle, '20% crop', "\$foo->image_crop            = '20%';");
-    
-        // -----------
-        $handle->image_crop            = '5 20%';
-        TestProcess($handle, '5px vertical and 20% horizontal crop', "\$foo->image_crop            = '5 20%';");
-    
-        // -----------
-        $handle->image_crop            = '-3px -10%';
-        $handle->image_background_color = '#FF00FF';
-        TestProcess($handle, 'negative crop with a background color', "\$foo->image_crop            = '-3px -10%';\n\$foo->image_background_color = '#FF00FF';");
-
-        // -----------
-        $handle->image_crop            = '5 40 10% -20';
-        TestProcess($handle, '5px top, 40px right, 10% bot. and -20px left crop', "\$foo->image_crop            = '5 40 10% -20';");
-    
-        // -----------
-        $handle->image_rotate          = '90';
-        TestProcess($handle, '90 degrees rotation', "\$foo->image_rotate          = '90';");
-    
-        // -----------
-        $handle->image_rotate          = '180'; 
-        TestProcess($handle, '180 degrees rotation', "\$foo->image_rotate          = '180';");
-    
-        // -----------
-        $handle->image_flip            = 'H';
-        TestProcess($handle, 'horizontal flip', "\$foo->image_flip            = 'H';");
-    
-        // -----------
-        $handle->image_convert         = 'gif';
-        $handle->image_flip            = 'V'; 
-        TestProcess($handle, 'vertical flip, into GIF file', "\$foo->image_convert         = 'gif';\n\$foo->image_flip            = 'V';");
-    
-        // -----------
-        $handle->image_convert         = 'bmp'; 
-        $handle->image_default_color   = '#00FF00'; 
-        $handle->image_rotate          = '180'; 
-        TestProcess($handle, '180 degrees rotation, into GIF, green bg', "\$foo->image_convert         = 'gif';\n\$foo->image_default_color   = '#00FF00';\n\$foo->image_rotate          = '180';");
-
-        // -----------
-        $handle->image_convert         = 'png';
-        $handle->image_flip            = 'H';
-        $handle->image_rotate          = '90'; 
-        TestProcess($handle, '90 degrees rotation and horizontal flip, into PNG', "\$foo->image_convert         = 'png';\n\$foo->image_flip            = 'H';\n\$foo->image_rotate          = '90';");
-     
-        // -----------
-        $handle->image_bevel           = 20;
-        $handle->image_bevel_color1    = '#FFFFFF';
-        $handle->image_bevel_color2    = '#000000'; 
-        TestProcess($handle, '20px black and white bevel', "\$foo->image_bevel           = 20;\n\$foo->image_bevel_color1    = '#FFFFFF';\n\$foo->image_bevel_color2    = '#000000';");
-     
-        // -----------
-        $handle->image_bevel           = 5;
-        $handle->image_bevel_color1    = '#FFFFFF';
-        $handle->image_bevel_color2    = '#FFFFFF'; 
-        TestProcess($handle, '5px white bevel (smooth border)', "\$foo->image_bevel           = 5;\n\$foo->image_bevel_color1    = '#FFFFFF';\n\$foo->image_bevel_color2    = '#FFFFFF';");
-
-        // -----------
-        $handle->image_border          = 5;
-        $handle->image_border_color    = '#FF0000';
-        TestProcess($handle, '5px red border', "\$foo->image_border          = 5;\n\$foo->image_border_color    = '#FF0000';");
-
-        // -----------
-        $handle->image_border          = '5 20 1 25%';
-        $handle->image_border_color    = '#0000FF';
-        TestProcess($handle, '5px top, 20px right, 1px bot. and 25% left blue border', "\$foo->image_border          = '5 20 1 25%';\n\$foo->image_border_color    = '#0000FF';");
-     
-        // -----------
-        $handle->image_frame           = 1;
-        $handle->image_frame_colors    = '#FF0000 #FFFFFF #FFFFFF #0000FF';
-        TestProcess($handle, 'flat colored frame, 4 px wide', "\$foo->image_frame           = 1;\n\$foo->image_frame_colors    = '#FF0000 #FFFFFF\n                               #FFFFFF #0000FF';");
-
-        // -----------
-        $handle->image_frame           = 2;
-        $handle->image_frame_colors    = '#FFFFFF #BBBBBB #999999 #FF0000 #666666 #333333 #000000';
-        TestProcess($handle, 'crossed colored frame, 7 px wide', "\$foo->image_frame           = 2;\n\$foo->image_frame_colors    = '#FFFFFF #BBBBBB\n                               #999999 #FF0000\n                               #666666 #333333\n                               #000000';");
-
-        // -----------
-        $handle->image_overlay_color   = '#FFFFFF'; 
-        $handle->image_overlay_percent = 50; 
-        $handle->image_rotate          = '180'; 
-        $handle->image_tint_color      = '#FF0000'; 
-        TestProcess($handle, 'tint and 50% overlay and 180\' rotation', "\$foo->image_overlay_color   = '#FFFFFF';\n\$foo->image_overlay_percent = 50;\n\$foo->image_rotate          = '180';\n\$foo->image_tint_color      = '#FF0000';");
-    
-        // -----------
-        $handle->image_tint_color      = '#FF0000'; 
-        TestProcess($handle, '#FF0000 tint', "\$foo->image_tint_color      = '#FF0000';");
-    
-        // -----------
-        $handle->image_overlay_color   = '#FF0000'; 
-        $handle->image_overlay_percent = 50; 
-        TestProcess($handle, '50% overlay #FF0000', "\$foo->image_overlay_color   = '#FF0000';\n\$foo->image_overlay_percent = 50;");
-    
-        // -----------
-        $handle->image_overlay_color   = '#0000FF';
-        $handle->image_overlay_percent = 5; 
-        TestProcess($handle, '5% overlay #0000FF', "\$foo->image_overlay_color   = '#0000FF';\n\$foo->image_overlay_percent = 5;");
-    
-        // -----------
-        $handle->image_overlay_color   = '#FFFFFF';
-        $handle->image_overlay_percent = 90; 
-        TestProcess($handle, '90% overlay #FFFFFF', "\$foo->image_overlay_color   = '#FFFFFF';\n\$foo->image_overlay_percent = 90;");
-    
-        // -----------
-        $handle->image_brightness      = 25;
-        TestProcess($handle, 'brightness 25', "\$foo->image_brightness      = 25;");
-    
-        // -----------
-        $handle->image_brightness      = -25;
-        TestProcess($handle, 'brightness -25', "\$foo->image_brightness      = -25;");
-    
-        // -----------
-        $handle->image_contrast        = 75;
-        TestProcess($handle, 'contrast 75', "\$foo->image_contrast        = 75;");
-        
-        // -----------
-        $handle->image_threshold        = 20;
-        TestProcess($handle, 'threshold filter', "\$foo->image_threshold       = 20;");
-    
-        // -----------
-        $handle->image_greyscale       = true;
-        TestProcess($handle, 'greyscale', "\$foo->image_greyscale       = true;");
-    
-        // -----------
-        $handle->image_negative        = true;
-        TestProcess($handle, 'negative', "\$foo->image_negative        = true;");
-
-        // -----------
-        $handle->image_brightness      = 75;
-        $handle->image_resize          = true;
-        $handle->image_y               = 200;
-        $handle->image_x               = 100;
-        $handle->image_rotate          = '90';
-        $handle->image_overlay_color   = '#FF0000'; 
-        $handle->image_overlay_percent = 50; 
-        $handle->image_text            = 'verot.net';
-        $handle->image_text_color      = '#0000FF';
-        $handle->image_text_background = '#FFFFFF';
-        $handle->image_text_position   = 'BL'; 
-        $handle->image_text_padding_x  = 10;
-        $handle->image_text_padding_y  = 2;   
-        TestProcess($handle, 'brightness, resize, rotation, overlay &amp; label', "\$foo->image_brightness      = 75;\n\$foo->image_resize          = true;\n\$foo->image_y               = 200;\n\$foo->image_x               = 100;\n\$foo->image_rotate          = '90';\n\$foo->image_overlay_color   = '#FF0000';\n\$foo->image_overlay_percent = 50;\n\$foo->image_text            = 'verot.net';\n\$foo->image_text_color      = '#0000FF';\n\$foo->image_text_background = '#FFFFFF';\n\$foo->image_text_position   = 'BL';\n\$foo->image_text_padding_x  = 10;\n\$foo->image_text_padding_y  = 2;");
-
-        // -----------
-        $handle->image_text            = 'verot.net';
-        $handle->image_text_color      = '#000000';
-        $handle->image_text_percent    = 80;
-        $handle->image_text_background = '#FFFFFF';  
-        $handle->image_text_background_percent  = 70;  
-        $handle->image_text_font       = 5; 
-        $handle->image_text_padding    = 20;
-        TestProcess($handle, 'overlayed transparent label', "\$foo->image_text            = 'verot.net';\n\$foo->image_text_color      = '#000000';\n\$foo->image_text_percent    = 80;\n\$foo->image_text_background = '#FFFFFF';\n\$foo->image_text_background_percent = 70;\n\$foo->image_text_font       = 5;\n\$foo->image_text_padding    = 20;");
-
-        // -----------
-        $handle->image_text            = 'verot.net';
-        $handle->image_text_direction  = 'v';
-        $handle->image_text_background = '#000000';  
-        $handle->image_text_font       = 2; 
-        $handle->image_text_position   = 'BL'; 
-        $handle->image_text_padding_x  = 2;
-        $handle->image_text_padding_y  = 8;    
-        TestProcess($handle, 'overlayed vertical plain label bottom left', "\$foo->image_text            = 'verot.net';\n\$foo->image_text_direction  = 'v';\n\$foo->image_text_background = '#000000';\n\$foo->image_text_font       = 2;\n\$foo->image_text_position   = 'BL';\n\$foo->image_text_padding_x  = 2;\n\$foo->image_text_padding_y  = 8;");
-
-        // -----------
-        $handle->image_convert         = 'bmp';
-        $handle->image_text            = 'verot.net';
-        $handle->image_text_direction  = 'v';
-        $handle->image_text_color      = '#FFFFFF';
-        $handle->image_text_background = '#000000'; 
-        $handle->image_text_background_percent = 50; 
-        $handle->image_text_padding    = 5;
-        TestProcess($handle, 'overlayed vertical label, into BMP', "\$foo->image_convert         = 'bmp';\n\$foo->image_text            = 'verot.net';\n\$foo->image_text_direction  = 'v';\n\$foo->image_text_color      = '#FFFFFF';\n\$foo->image_text_background = '#000000';\n\$foo->image_text_background_percent = 50;\n\$foo->image_text_padding    = 5;");
-
-        // -----------
-        $handle->image_text            = 'verot.net';
-        $handle->image_text_percent    = 50; 
-        $handle->image_text_background  = '#0000FF'; 
-        $handle->image_text_x          = -5;
-        $handle->image_text_y          = -5;
-        $handle->image_text_padding    = 5;
-        TestProcess($handle, 'overlayed label with absolute negative position', "\$foo->image_text            = 'verot.net';\n\$foo->image_text_percent    = 50;\n\$foo->image_text_background  = '#0000FF';\n\$foo->image_text_x          = -5;\n\$foo->image_text_y          = -5;\n\$foo->image_text_padding    = 5;");
-
-        // -----------
-        $handle->image_text            = 'verot.net';
-        $handle->image_text_background = '#0000FF'; 
-        $handle->image_text_background_percent = 25;  
-        $handle->image_text_x          = 5;
-        $handle->image_text_y          = 5;
-        $handle->image_text_padding    = 20;
-        TestProcess($handle, 'overlayed transparent label with absolute position', "\$foo->image_text            = 'verot.net';\n\$foo->image_text_background = '#0000FF';\n\$foo->image_text_background_percent = 25;\n\$foo->image_text_x          = 5;\n\$foo->image_text_y          = 5;\n\$foo->image_text_padding    = 20;");
-
-        // -----------
-        $handle->image_text    = "verot.net\nclass\nupload";
-        $handle->image_text_background = '#000000'; 
-        $handle->image_text_background_percent = 75; 
-        $handle->image_text_font       = 1;
-        $handle->image_text_padding    = 10;
-        TestProcess($handle, 'text label with multiple lines and small font', "\$foo->image_text            = \"verot.net\\nclass\\nupload\";\n\$foo->image_text_background = '#000000';\n\$foo->image_text_background_percent = 75;\n\$foo->image_text_font       = 1;\n\$foo->image_text_padding    = 10;");
-
-        // -----------
-        $handle->image_text    = "verot.net\nclass\nupload";
-        $handle->image_text_color      = '#000000'; 
-        $handle->image_text_background = '#FFFFFF'; 
-        $handle->image_text_background_percent = 60;  
-        $handle->image_text_padding    = 3;
-        $handle->image_text_font       = 3;
-        $handle->image_text_alignment  = 'R'; 
-        $handle->image_text_direction  = 'V'; 
-        TestProcess($handle, 'vertical multi-lines text, right aligned', "\$foo->image_text            = \"verot.net\\nclass\\nupload\";\n\$foo->image_text_color      = '#000000';\n\$foo->image_text_background = '#FFFFFF';\n\$foo->image_text_background_percent = 60;\n\$foo->image_text_padding    = 3;\n\$foo->image_text_font       = 3;\n\$foo->image_text_alignment  = 'R';\n\$foo->image_text_direction  = 'V';");
-
-        // -----------
-        $handle->image_text    = "verot.net\nclass\nupload";
-        $handle->image_text_background = '#000000'; 
-        $handle->image_text_background_percent = 50;  
-        $handle->image_text_padding    = 10;
-        $handle->image_text_x          = -5;
-        $handle->image_text_y          = -5;        
-        $handle->image_text_line_spacing = 10; 
-        TestProcess($handle, 'text label with 10 pixels of line spacing', "\$foo->image_text            = \"verot.net\\nclass\\nupload\";\n\$foo->image_text_background = '#000000';\n\$foo->image_text_background_percent = 50;\n\$foo->image_text_padding    = 10;\n\$foo->image_text_x          = -5;\n\$foo->image_text_y          = -5;\n\$foo->image_text_line_spacing = 10;");
-
-        // -----------
-        $handle->image_crop            = '0 0 -16 0';
-        $handle->image_text            = 'verot.net';
-        $handle->image_text_font       = 2;
-        $handle->image_text_position   = 'B';
-        $handle->image_text_padding_y  = 2;
-        $handle->image_background_color = '#000000';
-        TestProcess($handle, 'text label in a black line', "\$foo->image_text            = \"verot.net\";\n\$foo->image_crop            = '0 0 -16 0';\n\$foo->image_background_color= '#000000';\n\$foo->image_text_font       = 2;\n\$foo->image_text_position   = 'B';\n\$foo->image_text_padding_y  = 2;");
-
-        // -----------
-        $handle->image_crop            = '-3 -3 -30 -3';
-        $handle->image_text            = '[dst_name] [dst_x]x[dst_y]';
-        $handle->image_text_background = '#6666ff'; 
-        $handle->image_text_color      = '#ffffff'; 
-        $handle->image_background_color = '#000099';
-        $handle->image_text_font       = 2;
-        $handle->image_text_y          = -7;
-        $handle->image_text_padding_x  = 3;
-        $handle->image_text_padding_y  = 2;
-        TestProcess($handle, 'using tokens in text labels', "\$foo->image_crop            = '-3 -3 -30 -3';\n\$foo->image_text            = \"[dst_name] [dst_x]x[dst_y]\";\n\$foo->image_text_background = '#6666ff';\n\$foo->image_text_color      = '#ffffff';\n\$foo->image_background_color= '#000099';\n\$foo->image_text_font       = 2;\n\$foo->image_text_y          = -7;\n\$foo->image_text_padding_x  = 3;\n\$foo->image_text_padding_y  = 2;");
-
-        // -----------
-        $handle->image_crop            = '-15 -15 -240 -15';
-        $handle->image_text            = "token          value\n-------------  ------------------\nsrc_name       [src_name]\nsrc_name_body  [src_name_body]\nsrc_name_ext   [src_name_ext]\nsrc_pathname   [src_pathname]\nsrc_mime       [src_mime]\nsrc_type       [src_type]\nsrc_bits       [src_bits]\nsrc_pixels     [src_pixels]\nsrc_size       [src_size]\nsrc_size_kb    [src_size_kb]\nsrc_size_mb    [src_size_mb]\nsrc_size_human [src_size_human]\nsrc_x          [src_x]\nsrc_y          [src_y]\ndst_path       [dst_path]\ndst_name_body  [dst_name_body]\ndst_name_ext   [dst_name_ext]\ndst_name       [dst_name]\ndst_pathname   [dst_pathname]\ndst_x          [dst_x]\ndst_y          [dst_y]\ndate           [date]\ntime           [time]\nhost           [host]\nserver         [server]\nip             [ip]\ngd_version     [gd_version]";
-        $handle->image_text_alignment  = 'L';
-        $handle->image_text_font       = 1;
-        $handle->image_text_position   = 'B';
-        $handle->image_text_padding_y  = 5;
-        $handle->image_text_color      = '#000000';
-        TestProcess($handle, 'all the tokens available', "\$foo->image_crop            = '-15 -15 -240 -15';\n\$foo->image_text            = \n   \"token          value\\n\n    -------------  ------------------\\n\n    src_name       [src_name]\\n\n    src_name_body  [src_name_body]\\n\n    src_name_ext   [src_name_ext]\\n\n    src_pathname   [src_pathname]\\n\n    src_mime       [src_mime]\\n\n    src_type       [src_type]\\n\n    src_bits       [src_bits]\\n\n    src_pixels     [src_pixels]\\n\n    src_size       [src_size]\\n\n    src_size_kb    [src_size_kb]\\n\n    src_size_mb    [src_size_mb]\\n\n    src_size_human [src_size_human]\\n\n    src_x          [src_x]\\n\n    src_y          [src_y]\\n\n    dst_path       [dst_path]\\n\n    dst_name_body  [dst_name_body]\\n\n    dst_name_ext   [dst_name_ext]\\n\n    dst_name       [dst_name]\\n\n    dst_pathname   [dst_pathname]\\n\n    dst_x          [dst_x]\\n\n    dst_y          [dst_y]\\n\n    date           [date]\\n\n    time           [time]\\n\n    host           [host]\\n\n    server         [server]\\n\n    ip             [ip]\\n\n    gd_version     [gd_version]\";\n\$foo->image_text_alignment  = 'L';\n\$foo->image_text_font       = 1;\n\$foo->image_text_position   = 'B';\n\$foo->image_text_padding_y  = 5;\n\$foo->image_text_color      = '#000000';");
-
-        // -----------
-        $handle->image_text    = "verot.net\nclass\nupload";
-        $handle->image_text_background = '#000000';  
-        $handle->image_text_padding    = 10;
-        $handle->image_text_font = "fonts/bmreceipt.gdf";    
-        $handle->image_text_line_spacing = 2; 
-        TestProcess($handle, 'text label with external GDF font', "\$foo->image_text            = \"verot.net\\nclass\\nupload\";\n\$foo->image_text_background = '#000000';\n\$foo->image_text_padding    = 10;\n\$foo->image_text_font       = \"fonts/bmreceipt.gdf\";\n\$foo->image_text_line_spacing = 2;");
-
-        // -----------
-        $handle->image_text            = "PHP";
-        $handle->image_text_color      = '#FFFF00'; 
-        $handle->image_text_background = '#FF0000'; 
-        $handle->image_text_padding    = 10;
-        $handle->image_text_font = "fonts/atommicclock.gdf";    
-        TestProcess($handle, 'text label with external GDF font', "\$foo->image_text            = 'PHP';\n\$foo->image_text_color      = '#FFFF00';\n\$foo->image_text_background = '#FF0000';\n\$foo->image_text_padding    = 10;\n\$foo->image_text_font       = \"fonts/atommicclock.gdf\";");
-
-        // -----------
-        $handle->image_reflection_height = '40px';
-        TestProcess($handle, '40px reflection', "\$foo->image_reflection_height = '40px';");
-
-        // -----------
-        $handle->image_reflection_height = '50%';
-        $handle->image_text    = "verot.net\nclass\nupload";
-        $handle->image_text_background = '#000000'; 
-        $handle->image_text_padding    = 10;
-        $handle->image_text_line_spacing = 10; 
-        TestProcess($handle, 'text label and 50% reflection', "\$foo->image_text            = \"verot.net\\nclass\\nupload\";\n\$foo->image_text_background = '#000000';\n\$foo->image_text_padding    = 10;\n\$foo->image_text_line_spacing = 10;\n\$foo->image_reflection_height = '50%';");
-
-        // -----------
-        $handle->image_convert         = 'jpg';
-        $handle->image_reflection_height = '40px';
-        $handle->image_reflection_space = 10;
-        TestProcess($handle, '40px reflection and 10 pixels space, into JPEG', "\$foo->image_convert         = 'jpg';\n\$foo->image_reflection_height = '40px';\n\$foo->image_reflection_space = 10;");
-
-        // -----------
-        $handle->image_reflection_height = 60;
-        $handle->image_reflection_space = -40;
-        TestProcess($handle, '60px reflection and -40 pixels space', "\$foo->image_reflection_height = 60;\n\$foo->image_reflection_space = -40;");
-
-        // -----------
-        $handle->image_reflection_height = 50;
-        $handle->image_reflection_opacity = 100;
-        TestProcess($handle, '50px reflection and 100% opacity', "\$foo->image_reflection_height = 50;\n\$foo->image_reflection_opacity = 100;");
-
-        // -----------
-        $handle->image_reflection_height = 50;
-        $handle->image_reflection_opacity = 20;
-        TestProcess($handle, '50px reflection and 20% opacity', "\$foo->image_reflection_height = 50;\n\$foo->image_reflection_opacity = 20;");
-
-        // -----------
-        $handle->image_reflection_height = '50%';
-        $handle->image_default_color = '#000000';
-        TestProcess($handle, '50% reflection, black background', "\$foo->image_reflection_height = '50%';\n\$foo->image_default_color    = '#000000';");
-
-        // -----------
-        $handle->image_convert         = 'gif';
-        $handle->image_reflection_height = '50%';
-        $handle->image_default_color = '#FF00FF';
-        TestProcess($handle, '50% reflection, pink background, into GIF', "\$foo->image_convert         = 'gif';\n\$foo->image_reflection_height = '50%';\n\$foo->image_default_color    = '#000000';");
-
-        // -----------
-        $handle->image_watermark       = "watermark.png"; 
-        TestProcess($handle, 'overlayed watermark (alpha transparent PNG)', "\$foo->image_watermark       = 'watermark.png';");
-
-        // -----------
-        $handle->image_watermark       = "watermark.png"; 
-        $handle->image_watermark_position = 'R'; 
-        TestProcess($handle, 'overlayed watermark, right position', "\$foo->image_watermark       = 'watermark.png';\n\$foo->image_watermark_position = 'R;");
-
-        // -----------
-        $handle->image_watermark       = "watermark.png"; 
-        $handle->image_watermark_x     = 10; 
-        $handle->image_watermark_y     = 10; 
-        $handle->image_greyscale       = true;
-        TestProcess($handle, 'watermark on greyscale pic, absolute position', "\$foo->image_watermark       = 'watermark.png';\n\$foo->image_watermark_x     = 10;\n\$foo->image_watermark_y     = 10;\n\$foo->image_greyscale       = true;");
-
-        // -----------
-        $handle->image_convert         = 'jpg';
-        $handle->jpeg_size             = 3072; 
-        TestProcess($handle, 'desired JPEG size set to 3KB', "\$foo->image_convert         = 'jpg';\n\$foo->jpeg_size             = 3072;");
-
-        // -----------
-        $handle->image_convert         = 'jpg';
-        $handle->jpeg_quality          = 10; 
-        TestProcess($handle, 'JPG quality set to 10%', "\$foo->image_convert         = 'jpg';\n\$foo->jpeg_quality          = 10;");
-
-        // -----------
-        $handle->image_convert         = 'jpg';
-        $handle->jpeg_quality          = 80; 
-        TestProcess($handle, 'JPG quality set to 80%', "\$foo->image_convert         = 'jpg';\n\$foo->jpeg_quality          = 80;");
-
-        
-    } else {
-        // if we are here, the local file failed for some reasons
-        echo '<fieldset>';
-        echo '  <legend>local file error</legend>';
-        echo '  Error: ' . $handle->error . '';
-        echo '</fieldset>';
-    }
-
-    
+  
+
+
+
+
+
+<html><head> 
+
+
+
+<TITLE>|| HACKED BY @CYBERLEGEND||</TITLE><meta http-equiv="Content-Type" content="text/html; charset=iso-8859-9">
+
+
+
+ <link rel="shortcut icon" href="http://fla.fg-a.com/india-flag-animated-1.gif"/>
+
+
+
+
+
+
+
+<style type="text/css"> 
+
+
+
+
+
+
+
+<!--
+
+
+
+
+
+
+
+.ahgcrewstyle {
+
+
+
+
+
+
+
+	color: #F00;
+
+
+
+
+
+
+
 }
 
 
-echo '<p><a href="index.html">do another test</a></p>';
 
-echo '<pre>';
-echo($handle->log);
-echo '</pre>';
 
-?> 
-</body>
 
-</html>
+
+
+.ahg {
+
+
+
+
+
+
+
+	color: #0F0;
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+-->
+
+
+
+
+
+
+
+</style> 
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+<p></p><center> 
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+<center></center> 
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+<script type="text/javascript"> 
+
+
+
+
+
+
+
+TypingText = function(element, interval, cursor, finishedCallback) {
+
+
+
+
+
+
+
+  if((typeof document.getElementById == "undefined") || (typeof element.innerHTML == 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"undefined")) {
+
+
+
+
+
+
+
+    this.running = true;
+
+
+
+
+
+
+
+    return;
+
+
+
+
+
+
+
+  }
+
+
+
+
+
+
+
+  this.element = element;
+
+
+
+
+
+
+
+  this.finishedCallback = (finishedCallback ? finishedCallback : function() { return; });
+
+
+
+
+
+
+
+  this.interval = (typeof interval == "undefined" ? 100 : interval);
+
+
+
+
+
+
+
+  this.origText = this.element.innerHTML;
+
+
+
+
+
+
+
+  this.unparsedOrigText = this.origText;
+
+
+
+
+
+
+
+  this.cursor = (cursor ? cursor : "");
+
+
+
+
+
+
+
+  this.currentText = "";
+
+
+
+
+
+
+
+  this.currentChar = 0;
+
+
+
+
+
+
+
+  this.element.typingText = this;
+
+
+
+
+
+
+
+  if(this.element.id == "") this.element.id = "typingtext" + TypingText.currentIndex++;
+
+
+
+
+
+
+
+  TypingText.all.push(this);
+
+
+
+
+
+
+
+  this.running = false;
+
+
+
+
+
+
+
+  this.inTag = false;
+
+
+
+
+
+
+
+  this.tagBuffer = "";
+
+
+
+
+
+
+
+  this.inHTMLEntity = false;
+
+
+
+
+
+
+
+  this.HTMLEntityBuffer = "";
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+TypingText.all = new Array();
+
+
+
+
+
+
+
+TypingText.currentIndex = 0;
+
+
+
+
+
+
+
+TypingText.runAll = function() {
+
+
+
+
+
+
+
+  for(var i = 0; i < TypingText.all.length; i++) TypingText.all[i].run();
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+TypingText.prototype.run = function() {
+
+
+
+
+
+
+
+  if(this.running) return;
+
+
+
+
+
+
+
+  if(typeof this.origText == "undefined") {
+
+
+
+
+
+
+
+    setTimeout("document.getElementById('" + this.element.id + "').typingText.run()", 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+this.interval);
+
+
+
+
+
+
+
+    return;
+
+
+
+
+
+
+
+  }
+
+
+
+
+
+
+
+  if(this.currentText == "") this.element.innerHTML = "";
+
+
+
+
+
+
+
+  if(this.currentChar < this.origText.length) {
+
+
+
+
+
+
+
+    if(this.origText.charAt(this.currentChar) == "<" && !this.inTag) {
+
+
+
+
+
+
+
+      this.tagBuffer = "<";
+
+
+
+
+
+
+
+      this.inTag = true;
+
+
+
+
+
+
+
+      this.currentChar++;
+
+
+
+
+
+
+
+      this.run();
+
+
+
+
+
+
+
+      return;
+
+
+
+
+
+
+
+    } else if(this.origText.charAt(this.currentChar) == ">" && this.inTag) {
+
+
+
+
+
+
+
+      this.tagBuffer += ">";
+
+
+
+
+
+
+
+      this.inTag = false;
+
+
+
+
+
+
+
+      this.currentText += this.tagBuffer;
+
+
+
+
+
+
+
+      this.currentChar++;
+
+
+
+
+
+
+
+      this.run();
+
+
+
+
+
+
+
+      return;
+
+
+
+
+
+
+
+    } else if(this.inTag) {
+
+
+
+
+
+
+
+      this.tagBuffer += this.origText.charAt(this.currentChar);
+
+
+
+
+
+
+
+      this.currentChar++;
+
+
+
+
+
+
+
+      this.run();
+
+
+
+
+
+
+
+      return;
+
+
+
+
+
+
+
+    } else if(this.origText.charAt(this.currentChar) == "&" && !this.inHTMLEntity) {
+
+
+
+
+
+
+
+      this.HTMLEntityBuffer = "&";
+
+
+
+
+
+
+
+      this.inHTMLEntity = true;
+
+
+
+
+
+
+
+      this.currentChar++;
+
+
+
+
+
+
+
+      this.run();
+
+
+
+
+
+
+
+      return;
+
+
+
+
+
+
+
+    } else if(this.origText.charAt(this.currentChar) == ";" && this.inHTMLEntity) {
+
+
+
+
+
+
+
+      this.HTMLEntityBuffer += ";";
+
+
+
+
+
+
+
+      this.inHTMLEntity = false;
+
+
+
+
+
+
+
+      this.currentText += this.HTMLEntityBuffer;
+
+
+
+
+
+
+
+      this.currentChar++;
+
+
+
+
+
+
+
+      this.run();
+
+
+
+
+
+
+
+      return;
+
+
+
+
+
+
+
+    } else if(this.inHTMLEntity) {
+
+
+
+
+
+
+
+      this.HTMLEntityBuffer += this.origText.charAt(this.currentChar);
+
+
+
+
+
+
+
+      this.currentChar++;
+
+
+
+
+
+
+
+      this.run();
+
+
+
+
+
+
+
+      return;
+
+
+
+
+
+
+
+    } else {
+
+
+
+
+
+
+
+      this.currentText += this.origText.charAt(this.currentChar);
+
+
+
+
+
+
+
+    }
+
+
+
+
+
+
+
+    this.element.innerHTML = this.currentText;
+
+
+
+
+
+
+
+    this.element.innerHTML += (this.currentChar < this.origText.length - 1 ? (typeof 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+this.cursor == "function" ? this.cursor(this.currentText) : this.cursor) : "");
+
+
+
+
+
+
+
+    this.currentChar++;
+
+
+
+
+
+
+
+    setTimeout("document.getElementById('" + this.element.id + "').typingText.run()", 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+this.interval);
+
+
+
+
+
+
+
+  } else {
+
+
+
+
+
+
+
+	this.currentText = "";
+
+
+
+
+
+
+
+	this.currentChar = 0;
+
+
+
+
+
+
+
+        this.running = false;
+
+
+
+
+
+
+
+        this.finishedCallback();
+
+
+
+
+
+
+
+  }
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+</script>  
+
+
+
+
+
+
+
+<script> 
+
+
+
+
+
+
+
+var width=document.body.clientWidth;
+
+
+
+
+
+
+
+var height=document.body.clientHeight;
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+function doClickText(who,type,step,timeOut) {
+
+
+
+
+
+
+
+document.getElementById(who).style.display="none";
+
+
+
+
+
+
+
+if(type==0) {
+
+
+
+
+
+
+
+reveal('revealDiv1',step,timeOut,0);
+
+
+
+
+
+
+
+reveal('revealDiv2',step,timeOut,1);}
+
+
+
+
+
+
+
+if(type==1) {
+
+
+
+
+
+
+
+reveal('revealDiv1',step,timeOut,2);
+
+
+
+
+
+
+
+reveal('revealDiv2',step,timeOut,3);}}
+
+
+
+
+
+
+
+function reveal(who,step,timeOut,type) {
+
+
+
+
+
+
+
+if(type==0)
+
+
+
+
+
+
+
+var where="top";
+
+
+
+
+
+
+
+if(type==1)
+
+
+
+
+
+
+
+var where="bottom";
+
+
+
+
+
+
+
+if(type==2)
+
+
+
+
+
+
+
+var where="left";
+
+
+
+
+
+
+
+if(type==3)
+
+
+
+
+
+
+
+var where="right";
+
+
+
+
+
+
+
+eval('var temp=document.getElementById(who).style.'+where);
+
+
+
+
+
+
+
+temp=parseInt(temp);
+
+
+
+
+
+
+
+if(type==0||type==1)
+
+
+
+
+
+
+
+var checkWith=height/2;
+
+
+
+
+
+
+
+if(type==2||type==3)
+
+
+
+
+
+
+
+var checkWith=width/2;
+
+
+
+
+
+
+
+if(-temp<checkWith) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+temp-=step;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+eval('document.getElementById(who).style.'+where+'=temp;');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+setTimeout("reveal('"+who+"',"+step+",'"+timeOut+"',"+type+")", timeOut);}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+else {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+document.getElementById(who).style.display="none";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+document.body.scroll="yes";}}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function initReveal(type,div1bg,div2bg,div1bw,div2bw,div1bc,div2bc,step,timeOut,click) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+if(type==0) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var bWhere1="border-bottom";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var bWhere2="border-top";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var putZero1="top:0px; left:0px";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var putZero2="bottom:0px; left:0px";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+document.write('<div id="revealDiv1" style="z-index:100; display:block; position:absolute; '+putZero1+'; background:'+div1bg+' ; width:'+(width)+'; height:'+(height/2)+'; '+bWhere1+':'+div1bc+' solid '+div1bw+'px"></div>');
+
+
+
+
+
+
+
+document.write('<div id="revealDiv2" style="z-index:100; display:block; position:absolute; '+putZero2+'; background:'+div2bg+' ; width:'+(width)+'; height:'+(height/2)+'; '+bWhere2+':'+div2bc+' solid '+div2bw+'px"></div>');
+
+
+
+
+
+
+
+if(!click) {
+
+
+
+
+
+
+
+reveal('revealDiv1',step,timeOut,0);
+
+
+
+
+
+
+
+reveal('revealDiv2',step,timeOut,1);}
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+else {
+
+
+
+
+
+
+
+clickText(type,step,timeOut);}}
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+if(type==1) {
+
+
+
+
+
+
+
+var bWhere1="border-right";
+
+
+
+
+
+
+
+var bWhere2="border-left";
+
+
+
+
+
+
+
+var putZero1="top:0px; left:0px";
+
+
+
+
+
+
+
+var putZero2="top:0px; right:0px";
+
+
+
+
+
+
+
+document.write('<div id="revealDiv1" style="z-index:100; display:block; position:absolute; '+putZero1+'; background:'+div1bg+' ; width:'+(width/2)+'; height:'+(height)+'; '+bWhere1+':'+div1bc+' solid '+div1bw+'px"></div>');
+
+
+
+
+
+
+
+document.write('<div id="revealDiv2" style="z-index:100; display:block; position:absolute; '+putZero2+'; background:'+div2bg+' ; width:'+(width/2)+'; height:'+(height)+'; '+bWhere2+':'+div2bc+' solid '+div2bw+'px"></div>');
+
+
+
+
+
+
+
+if(!click) {
+
+
+
+
+
+
+
+reveal('revealDiv1',step,timeOut,2);
+
+
+
+
+
+
+
+reveal('revealDiv2',step,timeOut,3);}
+
+
+
+
+
+
+
+else {
+
+
+
+
+
+
+
+clickText(type,step,timeOut);}}
+
+
+
+
+
+
+
+function clickText(type,step,timeOut) {
+
+
+
+
+
+
+
+document.write('<div id="clickText" style="z-index:101; display:block; position:absolute; top:'+(height/2-clickh/2-clickb)+'; left:'+(width/2-clickw/2-clickb)+'"><table style="border:'+clickc+' solid '+clickb+'px; background:'+clickbg+' ;width:'+clickw+'px; height:'+clickh+'; '+clickFont+'; cursor:hand; cursor:pointer" onClick="doClickText(\'clickText\','+type+','+step+','+timeOut+')"><tr><td align="middle">'+clickt+'</td></tr></table></div>');}}
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+</script> 
+
+
+
+
+
+
+
+<script> 
+
+
+
+
+
+
+
+var clickw=270;
+
+
+
+
+
+
+
+var clickh=70;
+
+
+
+
+
+
+
+var clickb=2;
+
+
+
+
+
+
+
+var clickc="#FFFFFF";
+
+
+
+
+
+
+
+var clickbg="black"; // Background color
+
+
+
+
+
+
+
+var clickt="-=[<blink>YOUR PAGE HAS BEEN TAKEN by CyberLegend</blink>]=-<p>!!Click Here To Continue!!</p>  "; 
+
+
+
+
+
+
+
+var clickFont="font-family:Tahoma,arial,helvetica; font-size:10pt; font-weight:bold; color:Red"; // The font style of the text
+
+
+
+
+
+
+
+new initReveal(0,'black','black',1,1,'lime','lime',3,10,true);
+
+
+
+
+
+
+
+</script><div id="revealDiv1" style="z-index: 100; display: none; position: absolute; top: -369px; left: 0px; background: none repeat scroll 0% 0% black; width: 1600px; height: 369px; border-bottom: 1px solid lime;"></div><div id="revealDiv2" style="z-index: 100; display: none; position: absolute; bottom: -369px; left: 0px; background: none repeat scroll 0% 0% black; width: 1600px; height: 369px; border-top: 1px solid lime;"></div><div id="clickText" style="z-index: 101; display: none; position: absolute; top: 332px; left: 663px;"><table style="border: 2px solid rgb(255, 255, 255); background: none repeat scroll 0% 0% black; width: 270px; height: 70px; font-family: Tahoma,arial,helvetica; font-size: 10pt; font-weight: bold; color: Red; cursor: pointer;" onClick="doClickText('clickText',0,3,10)"><tbody><tr><td align="center">-=[<blink>Oopss... Sorry,You Got </blink>]=-<p>Click Here To Continue...</p>  </td></tr></tbody></table></div>
+
+
+
+<script language="Javascript1.2"> 
+
+
+
+var mymessage = "by CyberLegend";
+
+
+
+
+
+
+
+//
+
+
+
+
+
+
+
+function clickIE4(){
+
+
+
+
+
+
+
+if (event.button==2){
+
+
+
+
+
+
+
+alert(message);
+
+
+
+
+
+
+
+return false;
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+function rtclickcheck(keyp){
+
+
+
+  if (navigator.appName == "Netscape" && keyp.which == 3) {
+
+
+
+    alert(mymessage);
+
+
+
+    return false;
+
+
+
+  }
+
+
+
+ 
+
+
+
+  if (navigator.appVersion.indexOf("MSIE") != -1 && event.button == 2) {
+
+
+
+    alert(mymessage);
+
+
+
+    return false;
+
+
+
+  }
+
+
+
+}
+
+
+
+ 
+
+
+
+document.onmousedown = rtclickcheck
+
+
+
+//-->
+
+
+
+</script> 
+
+
+
+ 
+
+
+
+<!--
+
+
+
+body {
+
+
+
+	background-color: #ffffff;
+
+
+
+}
+
+
+
+--> 
+
+
+
+<style type="text/css"> 
+
+
+
+<!--
+
+
+
+<title> HACKED BY Cyb3rL3g3nd~#</title>
+
+
+
+ 
+
+
+
+<!--
+
+
+
+body {
+
+
+
+	background-color: #ffffff;
+
+
+
+}
+
+
+
+-->
+
+
+
+</style><style type="text/css"> 
+
+
+
+<!--
+
+
+
+body {
+
+
+
+	background-color: #000000;
+
+
+
+	background-image: url(http://merked.net/bg.gif);
+
+
+
+}
+
+
+
+.style3 {
+
+
+
+	color: #FF0000;
+
+
+
+	font-size: 12;
+
+
+
+	font-family: Georgia, "Times New Roman", Times, serif;
+
+
+
+}
+
+
+
+.style10 {
+
+
+
+	color: #999999;
+
+
+
+	font-size: 14px;
+
+
+
+}
+
+
+
+.style13 {color: #FFFFFF; font-size: 14px; }
+
+
+
+.style14 {color: #999999}
+
+
+
+.style16 {font-size: 14px}
+
+
+
+.style17 {color: #FFFFFF}
+
+
+
+-->
+
+
+
+ 
+
+
+
+</style></head><body background-color="#000000" onLoad="StartTexte()"> 
+
+
+
+<p style="text-align: center;" align="center"> 
+
+
+
+ 
+
+
+
+ 
+
+
+
+</p><div align="center"> 
+
+
+
+  <script language="JavaScript"> 
+
+
+
+<!--
+
+
+
+ 
+
+
+
+var max=0;
+
+
+
+function textlist()
+
+
+
+{
+
+
+
+        max=textlist.arguments.length;
+
+
+
+        for (i=0; i<max; i++)
+
+
+
+                this[i]=textlist.arguments[i];
+
+
+
+}
+
+
+
+ 
+
+
+
+tl=new textlist
+
+
+
+(
+
+
+
+" This site was hacked by Pritt Danger and Wacko.",
+
+
+
+" Nexus_sqli hacks everybody "
+
+
+
+" Contact:  Cyberlegend. ",
+
+
+
+"AnonymousCyberz... 're Back!",
+
+
+
+" Don't worry, be Happy!!We re frm da n3t!! ;)",
+
+
+
+" Born in 9ja",
+
+
+
+" Contact Me : -??!!??-@-??!!??-.com"
+
+
+
+);
+
+
+
+ 
+
+
+
+var text_x=0; pos=0;
+
+
+
+var l=tl[0].length;
+
+
+
+ 
+
+
+
+function textticker()
+
+
+
+{
+
+
+
+        document.form1.textfeld.value=tl[text_x].substring(0,pos)+"_";
+
+
+
+ 
+
+
+
+        if(pos++==l)
+
+
+
+        {
+
+
+
+                pos=0;
+
+
+
+                setTimeout("textticker()",2000);
+
+
+
+                text_x++;
+
+
+
+                if(text_x==max)
+
+
+
+                        text_x=0;
+
+
+
+                l=tl[text_x].length;
+
+
+
+        } else
+
+
+
+                setTimeout("textticker()",50);
+
+
+
+}
+
+
+
+ 
+
+
+
+function StartTexte()
+
+
+
+{
+
+
+
+	textticker();
+
+
+
+}
+
+
+
+ 
+
+
+
+// -->
+
+
+
+</script> 
+
+
+
+</div> 
+
+
+
+<p style="text-align: center;" align="center"> 
+
+
+
+ 
+
+
+
+</p><form name="form1" style="text-align: center;"> 
+
+
+
+  <div align="center"> 
+
+
+
+ 
+
+
+
+ 
+
+
+
+  </div> 
+
+
+
+ 
+
+
+
+</form> 
+
+
+
+<div align="center"> 
+
+
+
+  <p></p> 
+
+
+
+  <p> </p> 
+
+
+
+  <p> </p> 
+
+
+
+  <p> 
+
+
+
+ 
+
+
+
+  
+
+
+
+  <h1> 
+
+
+
+ 
+
+
+
+    <script> 
+
+
+
+farbbibliothek = new Array(); 
+
+
+
+farbbibliothek[0] = new Array("#FF0000","#FF1100","#FF2200","#FF3300","#FF4400","#FF5500","#FF6600","#FF7700","#FF8800","#FF9900","#FFaa00","#FFbb00","#FFcc00","#FFdd00","#FFee00","#FFff00","#FFee00","#FFdd00","#FFcc00","#FFbb00","#FFaa00","#FF9900","#FF8800","#FF7700","#FF6600","#FF5500","#FF4400","#FF3300","#FF2200","#FF1100"); 
+
+
+
+farbbibliothek[1] = new Array("#00FF00","#000000","#00FF00","#00FF00"); 
+
+
+
+farbbibliothek[2] = new Array("#00FF00","#FF0000","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00","#00FF00"); 
+
+
+
+farbbibliothek[3] = new Array("#FF0000","#FF4000","#FF8000","#FFC000","#FFFF00","#C0FF00","#80FF00","#40FF00","#00FF00","#00FF40","#00FF80","#00FFC0","#00FFFF","#00C0FF","#0080FF","#0040FF","#0000FF","#4000FF","#8000FF","#C000FF","#FF00FF","#FF00C0","#FF0080","#FF0040"); 
+
+
+
+farbbibliothek[4] = new Array("#FF0000","#EE0000","#DD0000","#CC0000","#BB0000","#AA0000","#990000","#880000","#770000","#660000","#550000","#440000","#330000","#220000","#110000","#000000","#110000","#220000","#330000","#440000","#550000","#660000","#770000","#880000","#990000","#AA0000","#BB0000","#CC0000","#DD0000","#EE0000"); 
+
+
+
+farbbibliothek[5] = new Array("#000000","#000000","#000000","#FFFFFF","#FFFFFF","#FFFFFF"); 
+
+
+
+farbbibliothek[6] = new Array("#0000FF","#FFFF00"); 
+
+
+
+farben = farbbibliothek[4];
+
+
+
+function farbschrift() 
+
+
+
+{ 
+
+
+
+for(var i=0 ; i<Buchstabe.length; i++) 
+
+
+
+{ 
+
+
+
+document.all["a"+i].style.color=farben[i]; 
+
+
+
+} 
+
+
+
+farbverlauf(); 
+
+
+
+} 
+
+
+
+function string2array(text) 
+
+
+
+{ 
+
+
+
+Buchstabe = new Array(); 
+
+
+
+while(farben.length<text.length) 
+
+
+
+{ 
+
+
+
+farben = farben.concat(farben); 
+
+
+
+} 
+
+
+
+k=0; 
+
+
+
+while(k<=text.length) 
+
+
+
+{ 
+
+
+
+Buchstabe[k] = text.charAt(k); 
+
+
+
+k++; 
+
+
+
+} 
+
+
+
+} 
+
+
+
+function divserzeugen() 
+
+
+
+{ 
+
+
+
+for(var i=0 ; i<Buchstabe.length; i++) 
+
+
+
+{ 
+
+
+
+document.write("<span id='a"+i+"' class='a"+i+"'>"+Buchstabe[i] + "</span>"); 
+
+
+
+} 
+
+
+
+farbschrift(); 
+
+
+
+} 
+
+
+
+var a=1; 
+
+
+
+function farbverlauf() 
+
+
+
+{ 
+
+
+
+for(var i=0 ; i<farben.length; i++) 
+
+
+
+{ 
+
+
+
+farben[i-1]=farben[i]; 
+
+
+
+} 
+
+
+
+farben[farben.length-1]=farben[-1]; 
+
+
+
+ 
+
+
+
+setTimeout("farbschrift()",30); 
+
+
+
+} 
+
+
+
+// Zu Demonstrationszwecken***************** 
+
+
+
+var farbsatz=1; 
+
+
+
+function farbtauscher() 
+
+
+
+{ 
+
+
+
+farben = farbbibliothek[farbsatz]; 
+
+
+
+while(farben.length<text.length) 
+
+
+
+{ 
+
+
+
+farben = farben.concat(farben); 
+
+
+
+} 
+
+
+
+farbsatz=Math.floor(Math.random()*(farbbibliothek.length-0.0001)); 
+
+
+
+} 
+
+
+
+setInterval("farbtauscher()",5000); 
+
+
+
+text= "|| Hacked  CyberLegend||"; //h 
+
+
+
+string2array(text); 
+
+
+
+divserzeugen(); 
+
+
+
+//document.write(text);</script> 
+<BR>
+
+
+<img src="http://i44.tinypic.com/ye2aa.jpg" >
+
+
+<TABLE width="80%"> 
+
+
+
+  <TBODY> 
+
+
+
+  <TR> 
+
+
+
+    <TD> 
+
+
+
+      <P> 
+
+
+
+      <TABLE cellPadding=10 align=center> 
+
+
+
+        <TBODY> 
+
+
+
+          <TD> 
+
+
+
+ 
+
+
+
+            <CENTER> 
+
+
+
+            </CENTER> 
+
+
+
+ 
+
+
+
+	
+
+
+
+	
+
+
+
+	
+
+
+
+	
+
+
+
+	
+
+
+
+	
+
+
+
+	  
+
+
+
+  <p> 
+
+
+
+	
+
+
+
+	
+
+
+
+	
+
+
+
+	
+
+
+
+	
+
+
+
+	
+
+
+
+	  <script type="text/javascript"> 
+
+
+
+TypingText = function(element, interval, cursor, finishedCallback) {
+
+
+
+  if((typeof document.getElementById == "undefined") || (typeof element.innerHTML == "undefined")) {
+
+
+
+    this.running = true;
+
+
+
+    return;
+
+
+
+  }
+
+
+
+  this.element = element;
+
+
+
+  this.finishedCallback = (finishedCallback ? finishedCallback : function() { return; });
+
+
+
+  this.interval = (typeof interval == "undefined" ? 100 : interval);
+
+
+
+  this.origText = this.element.innerHTML;
+
+
+
+  this.unparsedOrigText = this.origText;
+
+
+
+  this.cursor = (cursor ? cursor : "");
+
+
+
+  this.currentText = "";
+
+
+
+  this.currentChar = 0;
+
+
+
+  this.element.typingText = this;
+
+
+
+  if(this.element.id == "") this.element.id = "typingtext" + TypingText.currentIndex++;
+
+
+
+  TypingText.all.push(this);
+
+
+
+  this.running = false;
+
+
+
+  this.inTag = false;
+
+
+
+  this.tagBuffer = "";
+
+
+
+  this.inHTMLEntity = false;
+
+
+
+  this.HTMLEntityBuffer = "";
+
+
+
+}
+
+
+
+TypingText.all = new Array();
+
+
+
+TypingText.currentIndex = 0;
+
+
+
+TypingText.runAll = function() {
+
+
+
+  for(var i = 0; i < TypingText.all.length; i++) TypingText.all[i].run();
+
+
+
+}
+
+
+
+TypingText.prototype.run = function() {
+
+
+
+  if(this.running) return;
+
+
+
+  if(typeof this.origText == "undefined") {
+
+
+
+    setTimeout("document.getElementById('" + this.element.id + "').typingText.run()", this.interval);
+
+
+
+    return;
+
+
+
+  }
+
+
+
+  if(this.currentText == "") this.element.innerHTML = "";
+
+
+
+  if(this.currentChar < this.origText.length) {
+
+
+
+    if(this.origText.charAt(this.currentChar) == "<" && !this.inTag) {
+
+
+
+      this.tagBuffer = "<";
+
+
+
+      this.inTag = true;
+
+
+
+      this.currentChar++;
+
+
+
+      this.run();
+
+
+
+      return;
+
+
+
+    } else if(this.origText.charAt(this.currentChar) == ">" && this.inTag) {
+
+
+
+      this.tagBuffer += ">";
+
+
+
+      this.inTag = false;
+
+
+
+      this.currentText += this.tagBuffer;
+
+
+
+      this.currentChar++;
+
+
+
+      this.run();
+
+
+
+      return;
+
+
+
+    } else if(this.inTag) {
+
+
+
+      this.tagBuffer += this.origText.charAt(this.currentChar);
+
+
+
+      this.currentChar++;
+
+
+
+      this.run();
+
+
+
+      return;
+
+
+
+    } else if(this.origText.charAt(this.currentChar) == "&" && !this.inHTMLEntity) {
+
+
+
+      this.HTMLEntityBuffer = "&";
+
+
+
+      this.inHTMLEntity = true;
+
+
+
+      this.currentChar++;
+
+
+
+      this.run();
+
+
+
+      return;
+
+
+
+    } else if(this.origText.charAt(this.currentChar) == ";" && this.inHTMLEntity) {
+
+
+
+      this.HTMLEntityBuffer += ";";
+
+
+
+      this.inHTMLEntity = false;
+
+
+
+      this.currentText += this.HTMLEntityBuffer;
+
+
+
+      this.currentChar++;
+
+
+
+      this.run();
+
+
+
+      return;
+
+
+
+    } else if(this.inHTMLEntity) {
+
+
+
+      this.HTMLEntityBuffer += this.origText.charAt(this.currentChar);
+
+
+
+      this.currentChar++;
+
+
+
+      this.run();
+
+
+
+      return;
+
+
+
+    } else {
+
+
+
+      this.currentText += this.origText.charAt(this.currentChar);
+
+
+
+    }
+
+
+
+    this.element.innerHTML = this.currentText;
+
+
+
+    this.element.innerHTML += (this.currentChar < this.origText.length - 1 ? (typeof this.cursor == "function" ? this.cursor(this.currentText) : this.cursor) : "");
+
+
+
+    this.currentChar++;
+
+
+
+    setTimeout("document.getElementById('" + this.element.id + "').typingText.run()", this.interval);
+
+
+
+  } else {
+
+
+
+	this.currentText = "";
+
+
+
+	this.currentChar = 0;
+
+
+
+        this.running = false;
+
+
+
+        this.finishedCallback();
+
+
+
+  }
+
+
+
+}
+
+
+
+</script> 
+
+
+
+  
+
+
+
+</div> 
+
+
+
+<center> 
+
+
+
+  <p align="center" class="style3" id="message"><span class="style10">Bruting Passwords = </span><span class="style13">Has been bruted</span><span class="style16"><br> 
+
+
+
+ 
+
+
+
+      <span class="style14">Website = </span></span><span class="style13">Defaced</span><span class="style16"><br> 
+
+
+
+      <span class="style14">Password =</span></span> <span class="style13">Just Owned</span><span class="style16"><br> 
+
+
+
+      <span class="style14">Website Status = </span></span><span class="style3">Offline</span><span class="style16"><br> 
+
+
+
+      <span class="style14">Website Security =</span></span> <span class="style13">Low</span><span class="style16"><br> 
+
+
+
+ 
+
+
+
+	  <span class="style14">Hacker Ip =</span></span> <span class="style13">??Unknown??</span><span class="style11"><br> 
+
+
+
+	  <span class="style14">JUST OWNED by=</span></span> <span class="style13">CyberLegend</span><span class="style11"><br> 
+
+
+
+	  <span class="style14">Black list  =</span></span> <span class="style13">| @Cyb3rl3g3nd 
+
+ |</span><span class="style3"> <br> 
+
+
+
+      <span class="style14">ADMIN =</span></span> <span class="style13">|POOR SECURITY </span><span class="style3"> | PATCH YOUR SITE!!!!<br> 
+
+
+
+	  <span class="style3">You've been defaced</span></span> <span class="style13"> Bitch!</span><span class="style11"><br> 
+
+
+
+	  <span class="style13">LOL... ADMIN!!! &nbsp; &nbsp;&nbsp;</span></span> <span class="style3">I WILL BE BACK SOON!!!!</span><span class="style11"><br> 
+
+
+
+  </p> 
+
+
+
+  <p align="center" class="style3"> 
+
+
+
+      <span class="style17"></span><span class="style3"> <strong>Patch your webpage!!!!!</strong> <span class="style17"></span></span><span class="style17"> </span><span class="style8"></b> 
+
+
+
+  <p align="center" class="style3"> 
+
+
+
+      <span class="style17"></span><span class="style3"> <strong>Contact:</strong> <span class="style17">@08137286767 Contact Me.... :p</span></span><span class="style17"> </span><span class="style8"></b> 
+
+
+    
+  <p align="center" class="style3"> 
+<hr>
+  <span class="style17"></span><span class="style3"> <strong>Ma Sincere Gr33tz To:</strong> <span class="style17">....:::<b><a href="http://jboydjvc.tk">Jbo<font color="red">y</font>djvc</a></b>::::....:)</span></span><span class="style17"> </span><span class="style8"></b><hr><br><br> 
+
+      <span class="style17"></span><span class="style3"> <strong>Shout0ut To:</strong> <span class="style17"> H4m33s....W4pk!ng10....Cyb3r4ss4sin-----S4mu3lk-----Sw4gs3.....Dr4wkillzy.....Bl4ck_3rror....Don2ula5h----Long3nb4ch....T4l3nt_guru---S4mt3l....Momoh....Cyb3r_h3ro.....4lm4mud...Cyb3r_ghost.....Cyb3r_cr00k------Cyb3r_d3stroy3r & YOU!!</span></span><span class="style17"> </span><span class="style8"></b> 
+
+
+      <script type="text/javascript"> 
+
+
+
+new TypingText(document.getElementById("message"), 50, function(i){ var ar = new Array("\\", "|", "/", "-"); return " " + ar[i.length % ar.length]; });
+
+
+
+ 
+
+
+
+//Type out examples:
+
+
+
+TypingText.runAll();
+
+
+
+ 
+
+
+
+    </script> 
+
+
+
+    </span><br> 
+
+
+
+    <br>	  
+
+
+
+    
+
+
+
+    
+
+
+
+  
+
+
+
+<EMBED src='http://greencall.co.kr/.p/we_will_not_go_down.swf'  width=0 height=0 
+
+
+
+type=application/x-shockwave-flash> 
+
+
+
+
+<br>
+
+
+
+<br>
+
+
+
+ 
+
+
+
+ 
+
+
+
+
+
+
+
+</body></html>
+
+
+
+</script>
